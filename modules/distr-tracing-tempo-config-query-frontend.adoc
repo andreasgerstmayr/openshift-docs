@@ -8,60 +8,171 @@
 
 Query is a service that retrieves traces from storage and hosts the user interface to display them.
 
-.Parameters used by the {TempoOperator} to define Query
+.Configuration parameters for the Querier
 [options="header"]
-[cols="l, a, a, a"]
 |===
 |Parameter |Description |Values |Default value
 
-|spec:
-  query:
-    replicas:
-|Specifies the number of Query replicas to create.
-|Positive integer
+|`nodeSelector`
+|The simple form of the node-selection constraint.
+|type: object
 |
+
+|`replicas`
+|Specifies the number of replicas to be created for the component.
+|type: integer; format: int32
+|
+
+|`tolerations`
+|Specifies component-specific pod tolerations.
+|type: array; x-kubernetes-list-type: atomic
+|
+
+|`Tolerations` (items)
+|The pod to which the tolerations are attached tolerates any taint that matches the <key,value,effect> triple by using the matching <operator>. See the _Additional resources_ for details about taints and tolerations.
+|type: object
+|
+
+
+|`tolerationSeconds`
+|The time interval during which the toleration tolerates the taint. By default, this parameter is not set, and the taint is to be tolerated indefinitely without pod eviction. Zero and negative values are treated by the system as 0, which causes immediate eviction. This field is ignored if `effect: NoExecute` is not set for the toleration.
+|type: integer; format: int64
+|
+
+|`value`
+|The taint value for the toleration to match. If the operator is `Exists`, the value must be empty.
+|type: string
+|
+
 |===
 
 
-.Configuration parameters passed to Query
+.Configuration parameters for the Query Frontend
 [options="header"]
-[cols="l, a, a, a"]
 |===
 |Parameter |Description |Values |Default value
 
-|spec:
-  query:
-    options: {}
-|Configuration options that define the Query service.
+|`component`
+|Can be extended with `TempoComponentSpec` to specify options.
+|type: object
+|
+
+|`nodeSelector` (inside component)
+|The simple form of the node selection constraint.
+|type: object
+|
+
+|`replicas` (inside component)
+|Specifies the number of replicas to be created for the component.
+|type: integer; format: int32
+|
+
+|`tolerations` (inside component)
+|Specifies component-specific pod tolerations.
+|type: array; x-kubernetes-list-type: atomic
+|
+
+|`Tolerations` (items, inside component)
+|The pod to which the tolerations are attached tolerates any taint that matches the <key,value,effect> triple by using the matching <operator>. See the _Additional resources_ for details about taints and tolerations.
+|type: object
+|
+
+|`effect` (inside component.tolerations[x])
+|Specifies the taint effect to match. When left empty, matches all taint effects. Can be specified with one of the following values: `NoSchedule`, `PreferNoSchedule`, and `NoExecute`.
+|type: string
+|
+
+|`key` (inside component)
+|Identifies the taint key that the toleration applies to. To match all values and all taint keys, must be left empty, and the operator must be set to `Exists`.
+|type: string
+|
+
+|`operator` (inside component)
+|Defines how a key relates to the value. Valid operators are `Exists` and `Equal`. Defaults to `Equal`. The `Exists` value is equivalent to a wildcard to make a pod tolerate all taints of a particular category.
+|type: string
+|
+
+|`tolerationSeconds` (inside component)
+|Specifies the time interval during which the toleration tolerates the taint. By default, this parameter is not set, and the taint is to be tolerated indefinitely without pod eviction. Zero and negative values are treated by the system as 0, which causes immediate eviction. This field is ignored if `effect: NoExecute` is not set for the toleration.
+|type: integer; format: int64
+|
+
+|`value` (inside component)
+|The taint value for the toleration to match. If the operator is `Exists`, the value must be empty.
+|type: string
+|
+
+|`jaegerQuery`
+|Specifies the options specific to Jaeger Query.
 |
 |
 
-|options:
-  log-level:
-|Logging level for Query.
-|`debug`, `info`, `warn`, `error`, `fatal`, `panic`
+|`enabled`
+|When `enabled`, creates the Jaeger Query component,`jaegerQuery`.
+|type: boolean
 |
 
-|options:
-  query:
-    base-path:
-|You can set the base path for all tempo-query HTTP routes to a non-root value: for example, `/tempo` will cause all UI URLs to start with `/tempo`. This can be useful when running `tempo-query` behind a reverse proxy.
-|`/<path>`
+|`ingress`
+|Specifies the options for the Jaeger Query Ingress.
+|type: object
 |
+
+|`annotations`
+|Specifies the annotations of the Ingress object.
+|type: object
+|
+
+|`host`
+|Specifies the hostname of the Ingress object.
+|type: string
+|
+
+|`ingressClassName`
+|The name of an IngressClass cluster resource. Defines which Ingress controller serves this Ingress resource.
+|type: string
+|
+
+|`route`
+|Specifies OpenShift Route specific options.
+|type: object
+|
+
+|`termination`
+|The termination type. The default is `edge`.
+|type: string (enum: insecure, edge, passthrough, reencrypt)
+|
+
+|`type`
+|Specifies the type of Ingress for the Jaeger Query UI. The following types are supported: `ingress`, `route`, and `none`.
+|type: string (enum: ingress, route)
+|
+
 |===
 
 .Sample Query configuration
 [source,yaml]
 ----
-apiVersion: tempotracing.io/v1
-kind: "Tempo"
+apiVersion: tempo.grafana.com/v1alpha1
+kind: TempoStack
 metadata:
-  name: "my-tempo"
+  name: simplest
 spec:
-  strategy: allInOne
-  allInOne:
-    options:
-      log-level: debug
-      query:
-        base-path: /tempo
+  storage:
+    secret:
+      name: minio
+      type: s3
+  storageSize: 200M
+  resources:
+    total:
+      limits:
+        memory: 2Gi
+        cpu: 2000m
+  template:
+    queryFrontend:
+      jaegerQuery:
+        enabled: true
+        ingress:
+          route:
+            termination: edge
+          type: route
 ----
