@@ -25,25 +25,8 @@ Query is a service that retrieves traces from storage and hosts the user interfa
 
 |`tolerations`
 |Specifies component-specific pod tolerations.
-|type: array; x-kubernetes-list-type: atomic
+|type: array
 |
-
-|`Tolerations` (items)
-|The pod to which the tolerations are attached tolerates any taint that matches the <key,value,effect> triple by using the matching <operator>. See the _Additional resources_ for details about taints and tolerations.
-|type: object
-|
-
-
-|`tolerationSeconds`
-|The time interval during which the toleration tolerates the taint. By default, this parameter is not set, and the taint is to be tolerated indefinitely without pod eviction. Zero and negative values are treated by the system as 0, which causes immediate eviction. This field is ignored if `effect: NoExecute` is not set for the toleration.
-|type: integer; format: int64
-|
-
-|`value`
-|The taint value for the toleration to match. If the operator is `Exists`, the value must be empty.
-|type: string
-|
-
 |===
 
 
@@ -53,7 +36,7 @@ Query is a service that retrieves traces from storage and hosts the user interfa
 |Parameter |Description |Values |Default value
 
 |`component`
-|Can be extended with `TempoComponentSpec` to specify options.
+|Configuration of the Query Frontend component.
 |type: object
 |
 
@@ -69,82 +52,67 @@ Query is a service that retrieves traces from storage and hosts the user interfa
 
 |`tolerations` (inside component)
 |Specifies component-specific pod tolerations.
-|type: array; x-kubernetes-list-type: atomic
-|
-
-|`Tolerations` (items, inside component)
-|The pod to which the tolerations are attached tolerates any taint that matches the <key,value,effect> triple by using the matching <operator>. See the _Additional resources_ for details about taints and tolerations.
-|type: object
-|
-
-|`effect` (inside component.tolerations[x])
-|Specifies the taint effect to match. When left empty, matches all taint effects. Can be specified with one of the following values: `NoSchedule`, `PreferNoSchedule`, and `NoExecute`.
-|type: string
-|
-
-|`key` (inside component)
-|Identifies the taint key that the toleration applies to. To match all values and all taint keys, must be left empty, and the operator must be set to `Exists`.
-|type: string
-|
-
-|`operator` (inside component)
-|Defines how a key relates to the value. Valid operators are `Exists` and `Equal`. Defaults to `Equal`. The `Exists` value is equivalent to a wildcard to make a pod tolerate all taints of a particular category.
-|type: string
-|
-
-|`tolerationSeconds` (inside component)
-|Specifies the time interval during which the toleration tolerates the taint. By default, this parameter is not set, and the taint is to be tolerated indefinitely without pod eviction. Zero and negative values are treated by the system as 0, which causes immediate eviction. This field is ignored if `effect: NoExecute` is not set for the toleration.
-|type: integer; format: int64
-|
-
-|`value` (inside component)
-|The taint value for the toleration to match. If the operator is `Exists`, the value must be empty.
-|type: string
+|type: array
 |
 
 |`jaegerQuery`
 |Specifies the options specific to Jaeger Query.
-|
+|type: object
 |
 
-|`enabled`
+|`enabled` (inside jaegerQuery)
 |When `enabled`, creates the Jaeger Query component,`jaegerQuery`.
 |type: boolean
 |
 
-|`ingress`
+|`ingress` (inside jaegerQuery)
 |Specifies the options for the Jaeger Query Ingress.
 |type: object
 |
 
-|`annotations`
+|`annotations` (inside jaegerQuery.ingress)
 |Specifies the annotations of the Ingress object.
 |type: object
 |
 
-|`host`
+|`host` (inside jaegerQuery.ingress)
 |Specifies the hostname of the Ingress object.
 |type: string
 |
 
-|`ingressClassName`
+|`ingressClassName` (inside jaegerQuery.ingress)
 |The name of an IngressClass cluster resource. Defines which Ingress controller serves this Ingress resource.
 |type: string
 |
 
-|`route`
+|`route` (inside jaegerQuery.ingress)
 |Specifies OpenShift Route specific options.
 |type: object
 |
 
-|`termination`
+|`termination` (inside jaegerQuery.ingress.route)
 |The termination type. The default is `edge`.
 |type: string (enum: insecure, edge, passthrough, reencrypt)
 |
 
-|`type`
+|`type` (inside jaegerQuery.ingress)
 |Specifies the type of Ingress for the Jaeger Query UI. The following types are supported: `ingress`, `route`, and `none`.
 |type: string (enum: ingress, route)
+|
+
+|`monitorTab` (inside jaegerQuery)
+|MonitorTab defines monitor tab configuration.
+|type: object
+|
+
+|`enabled` (inside jaegerQuery.monitorTab)
+|Enables monitoring tab in Jaeger console. PrometheusEndpoint needs to be set to enable the feature.
+|type: boolean
+|
+
+|`prometheusEndpoint` (inside jaegerQuery.monitorTab)
+|PrometheusEndpoint configures endpoint to the Prometheus that contains span RED metrics. For instance on OpenShift this is set to https://thanos-querier.openshift-monitoring.svc.cluster.local:9091
+|type: string
 |
 
 |===
